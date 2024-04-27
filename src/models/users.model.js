@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 const userSchema = mongoose.Schema(
   {
     name: {
@@ -18,10 +19,22 @@ const userSchema = mongoose.Schema(
     },
     profilePhoto: {
       type: String,
-      required: true,
       default: "",
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+      required: true,
     },
   },
   { timestamps: true }
 );
+
+//encrypt password before saving to database
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+});
+
 export const User = mongoose.model("User", userSchema);
