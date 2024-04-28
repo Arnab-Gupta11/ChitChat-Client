@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { User } from "../models/users.model.js";
 
 const verifyToken = async (req, res, next) => {
   try {
@@ -13,7 +14,7 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).json({ message: "Invalid token" });
     }
     // console.log(decode);
-    req.id = decode._id;
+    req.user = await User.findById(decode._id).select("-password");
     next();
   } catch (error) {
     console.log(`Error from verifyToken: ${error.message}`);
