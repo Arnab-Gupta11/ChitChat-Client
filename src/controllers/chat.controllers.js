@@ -68,4 +68,40 @@ const fetchChats = async (req, res) => {
   }
 };
 
-export { accessChat, fetchChats };
+//Create group chat
+//method: POST
+//endpoint: http://localhost:5000/api/v1/chats/group
+
+const createGroupChat = async (req, res) => {
+  try {
+    if (!req.body.users || !req.body.name) {
+      return res.status(400).send({ message: "Please Fill all the feilds" });
+    }
+    var users = JSON.parse(req.body.users);
+    if (users.length < 2) {
+      return res.status(400).send("More than 2 users are required to form a group chat");
+    }
+
+    users.push(req.user);
+
+    try {
+      //create a group chat
+      const groupChat = await Chat.create({
+        chatName: req.body.name,
+        users: users,
+        isGroupChat: true,
+        groupAdmin: req.user,
+      });
+
+      const fullGroupChat = await Chat.findOne({ _id: groupChat._id }).populate("users", "-password").populate("groupAdmin", "-password");
+
+      res.status(200).json(fullGroupChat);
+    } catch (error) {
+      return res.status(400).send({ message: error.message });
+    }
+  } catch (error) {
+    console.log(`Error from createGroupChat: ${error.message}`);
+  }
+};
+
+export { accessChat, fetchChats, createGroupChat };
