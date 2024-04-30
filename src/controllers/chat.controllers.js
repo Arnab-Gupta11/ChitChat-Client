@@ -15,8 +15,30 @@ const accessChat = async (req, res) => {
       $and: [{ users: { $elemMatch: { $eq: req.user._id } } }, { users: { $elemMatch: { $eq: userId } } }],
     })
       .populate("users", "-password")
-      .populate("latestMessage");
+      .populate({
+        path: "latestMessage",
+        populate: { path: "sender", select: "name profilePhoto email" },
+      });
+
+    if (isChat.length > 0) {
+      res.send(isChat[0]);
+    } else {
+      var chatData = {
+        chatName: "sender",
+        isGroupChat: false,
+        users: [req.user._id, userId],
+      };
+      try {
+        const createdChat = await Chat.create(chatData);
+        const FullChat = await Chat.findOne({ _id: createdChat._id }).populate("users", "-password");
+        return res.status(200).json(FullChat);
+      } catch (error) {
+        return res.status(400).json({ message: error.message });
+      }
+    }
   } catch (error) {
     console.log(`Error from accessChat: ${error.message}`);
   }
 };
+
+export { accessChat };
