@@ -104,4 +104,36 @@ const createGroupChat = async (req, res) => {
   }
 };
 
-export { accessChat, fetchChats, createGroupChat };
+//Create group chat
+//method: POST
+//endpoint: http://localhost:5000/api/v1/chats/rename-group
+
+const renameGroupName = async (req, res) => {
+  try {
+    const { chatId, chatName } = req.body;
+    if (!chatId || !chatName) {
+      return res.status(400).send({ message: "Please Fill all the feilds" });
+    }
+
+    const updateGroupName = await Chat.findByIdAndUpdate(
+      chatId,
+      {
+        chatName: chatName,
+      },
+      {
+        new: true,
+      }
+    )
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password");
+    if (!updateGroupName) {
+      return res.status(404).json({ message: "Chat Not Found" });
+    } else {
+      res.json(updateGroupName);
+    }
+  } catch (error) {
+    console.log(`Error from renameGroupName: ${error.message}`);
+  }
+};
+
+export { accessChat, fetchChats, createGroupChat, renameGroupName };
