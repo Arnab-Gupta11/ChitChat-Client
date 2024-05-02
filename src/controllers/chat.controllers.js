@@ -104,7 +104,7 @@ const createGroupChat = async (req, res) => {
   }
 };
 
-//Create group chat
+//Rename group chat
 //method: POST
 //endpoint: http://localhost:5000/api/v1/chats/rename-group
 
@@ -136,4 +136,62 @@ const renameGroupName = async (req, res) => {
   }
 };
 
-export { accessChat, fetchChats, createGroupChat, renameGroupName };
+//Add group member
+//method: PUT
+//endpoint: http://localhost:5000/api/v1/chats/add-group-member
+const addMemberToGroup = async (req, res) => {
+  try {
+    const { chatId, userId } = req.body;
+    //Check if the requester is admin
+    const addMember = await Chat.findByIdAndUpdate(
+      chatId,
+      {
+        $push: { users: userId },
+      },
+      {
+        new: true,
+      }
+    )
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password");
+
+    if (!addMember) {
+      return res.status(404).json({ message: "Chat Not Found" });
+    } else {
+      res.json(addMember);
+    }
+  } catch (error) {
+    console.log(`Error from addMemberToGroup: ${error.message}`);
+  }
+};
+
+//Remove group member
+//method: PUT
+//endpoint: http://localhost:5000/api/v1/chats/remove-group-member
+const removeMemberFromGroup = async (req, res) => {
+  try {
+    const { chatId, userId } = req.body;
+    //Check if the requester is admin
+    const removedMember = await Chat.findByIdAndUpdate(
+      chatId,
+      {
+        $pull: { users: userId },
+      },
+      {
+        new: true,
+      }
+    )
+      .populate("users", "-password")
+      .populate("groupAdmin", "-password");
+
+    if (!removedMember) {
+      return res.status(404).json({ message: "Chat Not Found" });
+    } else {
+      res.json(removedMember);
+    }
+  } catch (error) {
+    console.log(`Error from removeMemberFromGroup: ${error.message}`);
+  }
+};
+
+export { accessChat, fetchChats, createGroupChat, renameGroupName, addMemberToGroup, removeMemberFromGroup };

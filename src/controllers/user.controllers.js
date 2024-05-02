@@ -8,6 +8,9 @@ const registerUser = async (req, res) => {
     if (!name || !password || !confirmPassword || !email || !gender) {
       return res.status(400).json({ message: "All Fields are required" });
     }
+    if (gender !== "male" && gender !== "female") {
+      return res.status(400).json({ message: "gender should be male or female" });
+    }
 
     //If User doesn't give photo
     const profilePhotoAvatar = `https://avatar.iran.liara.run/username?username=${name}`;
